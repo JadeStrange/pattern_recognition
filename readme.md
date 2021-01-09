@@ -1,4 +1,4 @@
-# 模式识别，反向传播，Kmeans，谱聚类
+# 模式识别编程作业，反向传播，Kmeans，谱聚类，svm调包libsvm
 
 ## 1. backpropagation.py
 
