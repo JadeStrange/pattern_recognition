@@ -1,3 +1,8 @@
+"""
+反向传播算法作业
+"""
+
+
 import random
 
 import numpy as np
