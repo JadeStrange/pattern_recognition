@@ -24,7 +24,7 @@ def load_data():
     data_list = []
     label_list = []
     for label, file_path in enumerate(
-            ["../data_7/x1.txt", "../data_7/x2.txt", "../data_7/x3.txt", "../data_7/x4.txt", "../data_7/x5.txt"]):
+            ["../kmeans_data/x1.txt", "../kmeans_data/x2.txt", "../kmeans_data/x3.txt", "../kmeans_data/x4.txt", "../kmeans_data/x5.txt"]):
         temp_data_list = sub_load_data(file_path)
         data_list.extend(temp_data_list)
         label_list.extend([label for _ in range(len(temp_data_list))])

@@ -2,7 +2,6 @@
 谱聚类作业
 """
 
-
 import numpy as np
 import math
 
@@ -10,12 +9,14 @@ from sklearn import metrics
 
 import kmeans.kmeans
 import matplotlib.pyplot as plt
+
+
 def loaddata():
     """
     加载数据
     :return:x_list数据
     """
-    file_name = "2_data.txt"
+    file_name = "spectral_data.txt"
     x_list = []
     with open(file_name, 'r') as f:
         for line in f.readlines():
@@ -23,6 +24,7 @@ def loaddata():
             a_str = a_str.split(' ')
             x_list.append((float(a_str[0]), float(a_str[1])))
     return np.array(x_list)
+
 
 def calculate_weight(x, y, sigma):
     """
@@ -34,58 +36,65 @@ def calculate_weight(x, y, sigma):
     """
     return math.exp((-1) * np.linalg.norm(x - y, 2) / (2 * sigma * sigma))
 
+
 def spectral_cluster(x_array):
     """
     谱聚类
     :param x_array: 数据集
     :return: 类别标签
     """
-    weight = np.zeros((x_array.shape[0], x_array.shape[0]))
+    weight = np.zeros((x_array.shape[0], x_array.shape[0]))  # 计算亲和度矩阵
 
     for x_index, x in enumerate(x_array):
         for y_index, y in enumerate(x_array):
             weight[x_index][y_index] = calculate_weight(x, y, SIGMA)
         index_list = np.argsort(weight[x_index])
-        for i in index_list[0: len(index_list) - K_NEIGHBOR]:
+        for i in index_list[0: len(index_list) - K_NEIGHBOR]:  # K临近之外的点，亲和度设置为0
             weight[x_index][i] = 0
-    weight = (weight + weight.T)/2
-    D = np.zeros((x_array.shape[0], x_array.shape[0]))
+    weight = (weight + weight.T) / 2  # 为了防止出现矩阵不对称，将权值与转置加起来除二
+
+    D = np.zeros((x_array.shape[0], x_array.shape[0]))  # 计算度矩阵
     for i in range(weight.shape[0]):
         for j in range(weight.shape[1]):
-            D[i,i] = D[i,i] + weight[i, j]
-    L = D - weight
-    D_trans = np.zeros((x_array.shape[0], x_array.shape[0]))
+            D[i, i] = D[i, i] + weight[i, j]
+
+    L = D - weight  # 计算拉普拉斯矩阵
+
+    D_trans = np.zeros((x_array.shape[0], x_array.shape[0]))  # 计算D^(-1/2)
     for i in range(D.shape[0]):
-        D_trans[i,i] = 1/math.sqrt(D[i,i])
-    L_sym = D_trans @ L @ D_trans
+        D_trans[i, i] = 1 / math.sqrt(D[i, i])
+
+    L_sym = D_trans @ L @ D_trans  # 计算L对称型
 
     # 计算特征值
     e_vals, e_vecs = np.linalg.eig(L_sym)
-
     sorted_indices = np.argsort(e_vals)
     # 过滤掉几乎为0的特征值对应的特征向量
     for i in range(len(sorted_indices)):
-        if e_vals[sorted_indices[i]] <= 0.0000001:
+        if e_vals[sorted_indices[i]] <= 0.0000001:  # 小于这个数值就认为为0
             continue
         else:
             break
     print(i)
-    V = e_vals[sorted_indices[i: K+i]]
-    U = e_vecs[:, sorted_indices[i: K+i]]
+
+    # 计算得到特征值
+    V = e_vals[sorted_indices[i: K + i]]
+    U = e_vecs[:, sorted_indices[i: K + i]]
 
     for i in range(U.shape[0]):
         norm = np.linalg.norm(U[i], 2)
         for j in range(U.shape[1]):
-            U[i, j] = U[i, j]/norm
+            U[i, j] = U[i, j] / norm
     predicts, cluster_center_point_list = kmeans.kmeans.kmeans(2, U)
-    # np.savetxt('a.csv', predicts, fmt='%d', delimiter=',')  # 将数组a存为csv文件
+    # np.savetxt('spectral_data_label.csv', predicts, fmt='%d', delimiter=',')  # 将数组a存为csv文件
     return predicts
 
+
 if __name__ == '__main__':
-    ground_truth = np.loadtxt('a.csv', delimiter=',')  # 将csv文件读取为数组
+    ground_truth = np.loadtxt('spectral_data_label.csv', delimiter=',')  # 将csv文件读取为数组
     x_array = loaddata()
-    #SIGMA = 0.1 — 0.22大概
-    #K = 2
+    # SIGMA = 0.1 — 0.22大概
+    # K = 2
     # 固定SIGMA为0.15 K从1——50
     SIGMA = 0.15
     K = 2
@@ -115,6 +124,3 @@ if __name__ == '__main__':
     plt.xlabel("sigma")
     plt.ylabel("acc")
     plt.show()
-
-
-
